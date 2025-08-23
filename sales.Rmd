@@ -1,0 +1,360 @@
+---
+title: Pinnacle Upholsters
+format:
+ html:
+  toc: true 
+  toc_float: true
+params:
+  month: January
+  year: 2013
+theme: spacelab
+author: Sales Department
+---
+
+```{r setup, include = FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+opts_chunk$set(message=FALSE, warning=FALSE, tidy.opts = list(width.cutoff=60))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readr))
+suppressPackageStartupMessages(library(ggthemes))
+suppressPackageStartupMessages(library(kableExtra))
+
+# SETTING GGPLOT THEME
+theme_set(theme_clean())
+
+# LOADING CLEANED SALES DATA
+clean_sales <- read_csv("clean_sales.csv")
+# View(clean_sales)
+
+# FACTORISING `ship.mode` and `segment` columns
+clean_sales$ship.mode <- as.factor(clean_sales$ship.mode)
+clean_sales$segment <- as.factor(clean_sales$segment)
+
+# ADDING TIME-BASED COLUMNS FOR EASY TIME AGGREGATION
+clean_sales <- clean_sales |> 
+  mutate(week = week(order.date), ## week
+         month = month(order.date,label = TRUE, abbr = FALSE), ## month
+         quarter = quarter(order.date), ## quarter
+         year = year(order.date))  ## year
+
+```
+
+# Introduction
+
+This report describes the sales made by Pinnacle Upholsters for the month of ``r paste(params$month) ``  in ``r paste(params$year)``. Goods sold are divided into `3` distinct segments,i.e `Consumer`, `Corporate` and `Home Office`. Each of these segments are further divided into `4` ship modes, namely: `First Class`, `Same Day`, `Second Class` and `Standard Class`
+
+<!--  I.Consumer -->
+
+## Consumer
+
+### First Class
+
+```{r echo=FALSE}
+con_fc_total_sales <- clean_sales |> 
+  filter(segment == "Consumer" & ship.mode == "First Class" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",con_fc_total_sales)`
+
+### Same Day
+
+```{r echo=FALSE}
+con_sd_total_sales <- clean_sales |> 
+  filter(segment == "Consumer" & ship.mode == "Same Day" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",con_sd_total_sales)`
+
+### Second Class
+
+```{r echo=FALSE}
+con_sc_total_sales <- clean_sales |> 
+  filter(segment == "Consumer" & ship.mode == "Second Class" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",con_sc_total_sales)`
+
+### Standard Class
+
+```{r echo=FALSE}
+con_std_total_sales <- clean_sales |> 
+  filter(segment == "Consumer" & ship.mode == "Standard Class" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",con_std_total_sales)`
+
+```{r echo=FALSE,fig.align='center'}
+consumer_filter <- clean_sales |> 
+  filter(segment == "Consumer" & month == params$month & year == params$year)
+
+consumer_aggregate <- consumer_filter |> 
+  group_by(ship.mode) |> 
+  summarise(Sales=sum(sales)) |> 
+  arrange(desc(Sales)) |> 
+  mutate(pct.sales = round(Sales*100/sum(Sales),2))
+
+
+ggplot(data=consumer_aggregate,
+       aes(x=reorder(ship.mode,pct.sales),y=pct.sales))+
+  geom_bar(stat = "identity",fill="#003399")+
+  labs(title = "Consumer sales",
+       subtitle = paste(params$month,params$year),
+       x="Ship mode",
+       y="sales [%]")+
+  geom_text(aes(label = paste(pct.sales,"% - ","Ksh.",Sales)),
+            vjust=-0.25)
+```
+
+<!-- II.Corporate -->
+
+## Corporate
+
+### First Class
+
+```{r echo=FALSE}
+cor_fc_total_sales <- clean_sales |> 
+  filter(segment == "Corporate" & ship.mode == "First Class" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",cor_fc_total_sales)`
+
+### Same Day
+
+```{r echo=FALSE}
+cor_sd_total_sales <- clean_sales |> 
+  filter(segment == "Corporate" & ship.mode == "Same Day" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",cor_sd_total_sales)`
+
+### Second Class
+
+```{r echo=FALSE}
+cor_sc_total_sales <- clean_sales |> 
+  filter(segment == "Corporate" & ship.mode == "Second Class" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",cor_sc_total_sales)`
+
+### Standard Class
+
+```{r echo=FALSE}
+cor_std_total_sales <- clean_sales |> 
+  filter(segment == "Corporate" & ship.mode == "Standard Class" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",cor_std_total_sales)`
+
+```{r echo=FALSE, fig.align='center'}
+
+corporate_filter <- clean_sales |> 
+  filter(segment == "Corporate" & month ==  params$month & year == params$year)
+
+corporate_aggregate <- corporate_filter |> 
+  group_by(ship.mode) |> 
+  summarise(Sales=sum(sales)) |> 
+  arrange(desc(Sales)) |>
+  mutate(pct.sales = round(Sales*100/sum(Sales),2))
+  
+
+ggplot(data=corporate_aggregate,
+       aes(x=reorder(ship.mode,pct.sales),y=pct.sales))+
+  geom_bar(stat = "identity",fill="#003399")+
+  labs(title = "Corporate sales",
+       subtitle = paste(params$month,params$year),
+       x="Ship mode",
+       y="sales [%]")+
+  geom_text(aes(label = paste(pct.sales,"% - ","Ksh.",Sales)),
+            vjust=-0.25)
+```
+
+<!-- III.Home Office -->
+
+## Home Office
+
+### First Class
+
+```{r echo=FALSE}
+ho_fc_total_sales <- clean_sales |> 
+  filter(segment == "Home Office" & ship.mode == "First Class" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",ho_fc_total_sales)`
+
+### Same Day
+
+```{r echo=FALSE}
+ho_sd_total_sales <- clean_sales |> 
+  filter(segment == "Home Office" & ship.mode == "Same Day" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",ho_sd_total_sales)`
+
+### Second Class
+
+```{r echo=FALSE}
+ho_sc_total_sales <- clean_sales |> 
+  filter(segment == "Home Office" & ship.mode == "Second Class" &  month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",ho_sc_total_sales)`
+
+### Standard Class
+
+```{r echo=FALSE}
+ho_std_total_sales <- clean_sales |> 
+  filter(segment == "Home Office" & ship.mode == "Standard Class" & month == params$month & year == params$year) |> 
+  select(sales) |> 
+  sum() |> 
+  unlist()
+```
+
+-   Total sales made: `r paste("Ksh.",ho_std_total_sales)`
+
+```{r echo=FALSE,fig.align='center'}
+homeoffice_filter <- clean_sales |> 
+  filter(segment == "Home Office" & month == params$month & year == params$year) 
+
+homeoffice_aggregate <- homeoffice_filter |> 
+  group_by(ship.mode) |> 
+  summarise(Sales=sum(sales)) |> 
+  arrange(desc(Sales)) |>
+  mutate(pct.sales = round(Sales*100/sum(Sales),2))
+  
+# clean_sales |> 
+#   filter(segment == "Home Office" & month == params$month & year == params$year) |>
+#   group_by(ship.mode) |> 
+#   summarise(Sales=sum(sales)) |> 
+#   arrange(desc(Sales)) |>
+#   mutate(pct.sales = round(Sales*100/sum(Sales),2)) |> 
+ggplot(data=homeoffice_aggregate,
+         aes(x=reorder(ship.mode,pct.sales),y=pct.sales))+
+  geom_bar(stat = "identity",fill="#003399")+
+  labs(title = "Home Office sales",
+       subtitle = paste(params$month,params$year),
+       x="Ship mode",
+       y="sales [%]")+
+  geom_text(aes(label = paste(pct.sales,"% - ","Ksh.",Sales)),
+            vjust=-0.25)
+```
+
+
+# Insights
+
+```{r echo=FALSE}
+## Total sales from all 3 segments
+segment_sales <- clean_sales |> 
+  filter(month == params$month & year == params$year) |> 
+  group_by(segment) |> 
+  summarise(total.sales = sum(sales)) |> 
+  arrange(desc(total.sales)) |> 
+  mutate(pct.sales = round(total.sales*100/sum(total.sales),2))
+
+## Segment-Shipmode combination
+segment_shipmode <- data.frame(combo = c("Consumer First Class",
+                   "Consumer Second Class",
+                   "Consumer Same Day",
+                   "Consumer Standard Class",
+"Corporate First Class","Corporate Second Class",
+"Corporate Same Day","Corporate Standard Class",
+"Home Office First Class","Home Office Second Class",
+"Home Office Same Day","Home Office Standard Class"),
+          sales = c(con_fc_total_sales,con_sc_total_sales,con_sd_total_sales,con_std_total_sales,cor_fc_total_sales,cor_sc_total_sales,cor_sd_total_sales,cor_std_total_sales,ho_fc_total_sales,ho_sc_total_sales,ho_sd_total_sales,ho_std_total_sales))
+ 
+## Number of segment orders & average order value
+segment_orders <- clean_sales |> 
+  filter(month == params$month & year == params$year) |>
+  group_by(segment) |> 
+  summarise(avg.order = mean(sales),
+            number_of_orders = n()) |> 
+  arrange(desc(avg.order)) |> 
+  mutate(pct.orders = round(number_of_orders*100/sum(number_of_orders),2))
+
+```
+
+-   Total monthly sales ``r paste("Ksh.",sum(segment_sales$total.sales))``
+
+```{r echo=FALSE}
+### Monthly percent change total sales
+sales_change <- clean_sales |> 
+  filter(year ==  params$year)|>
+  group_by(month) |> 
+  summarise(total.sales=sum(sales),
+            .groups = "drop") |> 
+  mutate(pct_change = round((total.sales-lag(total.sales))*100/lag(total.sales),2)
+         )
+## Sales change percent value
+monthly_sales_change <- sales_change |> 
+  filter(month == params$month) |> 
+  select(pct_change) |> 
+  unlist()
+```
+
+- Percentage change in `total monthly sales`,with respect to last month is
+``r if(is.na(monthly_sales_change)==TRUE){paste("-")}else{paste(monthly_sales_change,"%")}``
+
+## Segments
+
+- `Home Office` was the top-performing segment raking in ``r paste("Ksh.",segment_sales$total.sales[1])`` which translates to ``r paste(segment_sales$pct.sales[1],"%")``of the total monthly revenue.
+
+- `Corporate` was the biggest underperformer, bringing in ``r paste(segment_sales$pct.sales[3],"%")`` of the total revenue.
+
+
+## Shipping modes
+
+-   ``r paste(consumer_aggregate[consumer_aggregate$Sales==max(consumer_aggregate$Sales),1] |> unlist())`` goods fetched  ``r paste("Ksh.",consumer_aggregate[consumer_aggregate$Sales==max(consumer_aggregate$Sales),2] |> unlist())`` which is ``r paste(consumer_aggregate[consumer_aggregate$Sales==max(consumer_aggregate$Sales),3] |> unlist() |> round(2),"%")`` of all the sales made from the `Consumer` segment.
+
+-   ``r paste(corporate_aggregate[corporate_aggregate$Sales==max(corporate_aggregate$Sales),1] |> unlist())`` goods fetched  ``r paste("Ksh.",corporate_aggregate[corporate_aggregate$Sales==max(corporate_aggregate$Sales),2] |> unlist())`` which is ``r paste(corporate_aggregate[corporate_aggregate$Sales==max(corporate_aggregate$Sales),3] |> unlist() |> round(2),"%")`` of all the sales made from the `Corporate` segment.
+
+-   ``r paste(homeoffice_aggregate[homeoffice_aggregate$Sales==max(homeoffice_aggregate$Sales),1] |> unlist())`` goods fetched ``r paste("Ksh.",homeoffice_aggregate[homeoffice_aggregate$Sales==max(homeoffice_aggregate$Sales),2] |> unlist())`` which is ``r paste(homeoffice_aggregate[homeoffice_aggregate$Sales==max(homeoffice_aggregate$Sales),3] |> unlist() |> round(2),"%")`` of all the sales made from the `Home Office` segment.
+
+-   ``r segment_shipmode[segment_shipmode$sales==0,1]`` combinations made `no revenue` for the month.
+
+
+## Customer orders
+
+* Total number of orders: ``r sum(segment_orders$number_of_orders)``
+  + ``r segment_orders |> arrange(desc(number_of_orders)) |> select(segment) |> nth(n=1) |> unlist()``: ``r segment_orders |> arrange(desc(number_of_orders)) |> select(pct.orders) |> nth(n=1) |> unlist() |> paste("%")``
+  + ``r segment_orders |> arrange(desc(number_of_orders)) |> select(segment) |> nth(n=2) |> unlist()``: ``r segment_orders |> arrange(desc(number_of_orders)) |> select(pct.orders) |> nth(n=2) |> unlist() |> paste("%")``
+  + ``r segment_orders |> arrange(desc(number_of_orders)) |> select(segment) |> nth(n=3) |> unlist()``: ``r segment_orders |> arrange(desc(number_of_orders)) |> select(pct.orders) |> nth(n=3) |> unlist() |> paste("%")``
+
+* The average value of orders made in Ksh.:
+```{r echo=FALSE}
+data.frame("segment"=segment_orders$segment,
+           "average_order_value"=segment_orders$avg.order) |> 
+  kable() |> 
+  kable_classic_2()
+```
