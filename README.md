@@ -2,6 +2,10 @@
 ## About
 An automation framework that uses RMarkdown to generate and email periodic parameterized sales reports. 🛠⚙    
 
+## Packages used
+![dplyr](dplyr.png)
+![fs](fs.png)
+![ggplot2](dplyr.png)
 
 ## PHASE I:
 The project begins with the inspection of sales data. The data is stored in an Excel worksheet called `2.-Badly-Structured-Sales-Data-2.xlsx`. 
@@ -58,4 +62,4 @@ In order to validate blastula's capabilities, I used two of my email addresses; 
 The `sales_Automation.R` script is the backbone of this project. It imports the cleaned sales data, renders the reports and emails them. 
 The last two tasks are executed within two `for` loops whosw counters are `select_yr` and `select_month` that capture all the months within the years.  
 
-![dplyr](dplyr.png)
+
