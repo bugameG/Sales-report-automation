@@ -7,6 +7,8 @@ An automation framework that uses RMarkdown to generate and email periodic param
 ![fs](fs.png)
 ![ggplot2](ggplot2.png)
 ![readxl](readxl.png)
+![blastula](blastula.svg)
+
 
 ## PHASE I:
 The project begins with the inspection of sales data. The data is stored in an Excel worksheet called `2.-Badly-Structured-Sales-Data-2.xlsx`. 
