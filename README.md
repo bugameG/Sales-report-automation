@@ -38,7 +38,7 @@ They are accessed in the report content and code chunks as `params$year` and `pa
 Render reports one at a time by changing parameter values manually. The month `January` and year `2013` are set as the default parameter values.
 
 ### 3. Rendering all at once
-Automate the rendering of all reort variations with a script. The file `sales_Automation.R` renders all the sales reports using only 100 lines of code.
+Automate the rendering of all report variations with a script. The file `sales_Automation.R` renders all the sales reports using only 100 lines of code.
 
 ****
 
@@ -56,4 +56,4 @@ In order to validate blastula's capabilities, I used two of my email addresses; 
 
 ### Putting it all together
 The `sales_Automation.R` script is the backbone of this project. It imports the cleaned sales data, renders the reports and emails them. 
-The last two tasks are executed within two `for` loops whosw counters are select_yr` and select_month` that capture all the months within the years.  
+The last two tasks are executed within two `for` loops whosw counters are `select_yr` and `select_month` that capture all the months within the years.  
