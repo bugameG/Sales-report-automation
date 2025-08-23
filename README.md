@@ -5,7 +5,8 @@ An automation framework that uses RMarkdown to generate and email periodic param
 ## Packages used
 ![dplyr](dplyr.png)
 ![fs](fs.png)
-![ggplot2](dplyr.png)
+![ggplot2](ggplot2.png)
+![readxl](readxl.png)
 
 ## PHASE I:
 The project begins with the inspection of sales data. The data is stored in an Excel worksheet called `2.-Badly-Structured-Sales-Data-2.xlsx`. 
