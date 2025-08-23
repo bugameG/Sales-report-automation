@@ -1,3 +1,45 @@
 # Sales-report-automation
-### About
+## About
 An automation framework that uses RMarkdown to generate and email periodic parameterized sales reports. 🛠⚙    
+
+
+## PHASE I:
+The project begins with the inspection of sales data. The data is stored in an Excel worksheet called '2.-Badly-Structured-Sales-Data-2.xlsx'. 
+It is loaded into R via the `readxl` package.
+Inspection is necessary to ensure that the data being analysed is in the right format.(tidy data) 
+As expected, the sales data is messy and thus need cleaning to facilitate valid visualisation & analysis.
+The `tidyverse` group of packages is employed for this task.  
+
+### Data cleaning - highlights
+The sales data initially had a wide format structure with missing value cases (NAs). 
+For easier Statistical computation, it had to be converted to long format. The `reshape2` package facilitated this transition. All missing values were dropped.
+The ISO date format (YYYY-MM-DD) was implemented to allow for feature engineering of the data.
+Goods are categorised into 3 distinct segments each having 4 unique shipping modes. 
+As a result of this, I split the data through `dplyr`'s filtering pipeline into 12 dataframes representative of all possible segment-shipping mode combinations.
+This was to ensure that I end up with two independent columns representing the segment type and shipping mode of each order.
+Next, I merged all 12 dataframes and ended up with a time-ordered tidy version of the sales data running from `January 2013` upto `December 2016`. 
+The tidy version of the sales data is written to a csv file `clean_sales.csv`
+
+
+## PHASE II:
+### Setting up the report template
+For this phase, I set up the template to be used for reporting periodic sales. Parameterised reports are similar to `functions`, where the quarto template document (`.qmd` file)
+is the `function`, the parameter is the `input` and the report is the `ouput` (Jadey, 2020). 
+Parameters can be `character`, `integer`, `numeric` or `logical` values.  
+Initially, I had planned to use `quarto` but ended up at `RMarkdown` due to debugging woes.
+In my case I used two parameters: month, an ordered factor and year a numeric variable. These parameters were used in the code chunks to filter through the sales data.     
+This was the automation roadmap that I used provided by Jadey Ryan.
+
+### 1. Setting and using parameters
+The parameters are well-defined in the YAML header within the `sales.Rmd` file under `params` section. 
+They are accessed in the report content and code chunks as `params$year` and `params$month` for year and month variablres respectively.
+
+### 2. Rendering one-at-a-time
+Render reports one at a time by changing parameter values manually. The month `January` and year `2013` are set as the default parameter values.
+
+### 3. Rendering all at once
+Automate the rendering of all reort variations with a script. The file `sales_Automation.R` renders all the sales reports using only 100 lines of code.
+
+****
+
+The sales template is the file `sales.Rmd`  
