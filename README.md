@@ -94,6 +94,6 @@ As a solution the `keyring` package came to my rescue and handled the SMTP encry
 ## Conclusion
 I would first like to thank Dr. Thomas Mawora for his valued contribution to this project. He led me to investigate on RMarkdown/Quarto automation in R.
 A few months later and here we are! The Sales-automation project is now complete.   
-In colclusion ,automation is possible and fun in R!  
+In conclusion ,automation is possible and fun in R! 🚀
 
 
