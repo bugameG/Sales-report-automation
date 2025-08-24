@@ -3,11 +3,16 @@
 An automation framework that uses RMarkdown to generate and email periodic parameterized sales reports. 🛠⚙    
 
 ## Packages used
-![dplyr](dplyr.png)
-![fs](fs.png)
-![ggplot2](ggplot2.png)
+The following librarires were used to facilitate this project
+
+![tidyverse](tidverse.png)
 ![readxl](readxl.png)
+![ggplot2](ggplot2.png)
+![glue](glue.png)
+![fs](fs.png)
+![dplyr](dplyr.png)
 ![blastula](blastula.svg)
+
 
 
 ## PHASE I:
@@ -64,5 +69,31 @@ In order to validate blastula's capabilities, I used two of my email addresses; 
 ### Putting it all together
 The `sales_Automation.R` script is the backbone of this project. It imports the cleaned sales data, renders the reports and emails them. 
 The last two tasks are executed within two `for` loops whosw counters are `select_yr` and `select_month` that capture all the months within the years.  
+
+These tasks are executed within the loops:
+
+- The parameterised reports are rendered with respect to the parameter values in the set working directory
+- Drafting and sending of emails with the report(s) attached
+- Creation of new folders tha store monthly reports as per their respective years
+- Relocation of sales reports from the working directory to their designated annual folder 
+      
+### Challenges encountered
+Execution of this project was not short of challenges. Here are some of the challenges I faced and how they were resolved.
+
+Quarto debugging
+*****
+I run into numerous bugs while attempting to use Quarto for rendering the sales reports. 95% of them involved caching issues on the parameterised .qmd version of `sales.Rmd`. 
+The ggplot bar graphs were the most affected by this. On inspection of the rendered reports, all of them had data on `December 2016`. I therefore switched to RMarkdown and the caching problems were solved.
+ 
+Email credentials
+*****
+The blastula library offered great help in drafting and sending emails via R. However, my email credentials were at risk of exposure within the rendering script. 
+As a solution the `keyring` package came to my rescue and handled the SMTP encryption that ensured my email details were not exposed at the expense of this project.      
+
+
+## Conclusion
+I would first like to thank Dr. Thomas Mawora for his valued contribution to this project. He led me to investigate on RMarkdown/Quarto automation in R.
+A few months later and here we are! The Sales-automation project is now complete.   
+In colclusion ,automation is possible and fun in R!  
 
 
