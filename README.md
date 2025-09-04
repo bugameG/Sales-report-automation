@@ -109,6 +109,6 @@ In addition to the periodic reports, two new outputs are created, `sales_Automat
 And just like that, automation isn't just `fun` it just got ~seamless~ 😎 
 
 ## References
-- Ryan, J. (2020). *Automating Quarto reports with parameters*. [Jadey Ryan Blog](https://posit.co/blog/parameterized-quarto/).
+- Albert, R. (2025). *How to Automate Data Reports with Quarto (Beginner_s Guide)*[](https://youtu.be/KCpuUF4vi5g?si=24o4-efKP7JYr2eA)
 - Jalayer, A. (2018). *R-run R non-interactively with BATCH file* [Jalayer Academy](https://youtu.be/Guw2XgGvl44?si=yzbaTVSL0oEG3lFx)
-- *How to Automate Data Reports with Quarto (Beginner_s Guide)*[](https://youtu.be/KCpuUF4vi5g?si=24o4-efKP7JYr2eA)
+- Ryan, J. (2020). *Automating Quarto reports with parameters*. [Jadey Ryan Blog](https://posit.co/blog/parameterized-quarto/).
