@@ -94,6 +94,21 @@ As a solution the `keyring` package came to my rescue and handled the SMTP encry
 ## Conclusion
 I would first like to thank Dr. Thomas Mawora for his valued contribution to this project. He led me to investigate on RMarkdown/Quarto automation in R.
 A few months later and here we are! The Sales-automation project is now complete.   
-In conclusion ,automation is possible and fun in R! 🚀
+In conclusion ,automation is `possible` and `fun` in R! 🚀
 
+****
 
+# Epilogue
+Upon completion of this project, I discovered that I could execute this framework with just a single click.[How](https://youtu.be/Guw2XgGvl44?si=yzbaTVSL0oEG3lFx)? You may ask. 
+The answer lies in the executable `R.exe` found within the R folder. This executable runs the `sales_Automation.R` script non-interactively i.e without opening the usual R-GUI or RStudio.
+We also do not need to open `R.exe` to run the script, instead we utilise the `Windows Command Prompt`. The comand prompt file `sales_Automation.bat` executes this framework with one click. Within the batch file, the cmd calls `R.exe` from its location to execute the `sales_Automation.R` file which renders and emails the reports. 
+In addition to the periodic reports, two new outputs are created, `sales_Automation.Rout` and `sales_Automation.RData`. 
+- `sales_Automation.Rout` consists of all the input code and output messages from `sales_Automation.R`
+- `sales_Automation.RData` contains the workspace which is a set of all the assignments made in `sales_Automation.R`
+
+And just like that, automation isn't just `fun` it just got ~seamless~ 😎 
+
+## References
+- Ryan, J. (2020). *Automating Quarto reports with parameters*. [Jadey Ryan Blog](https://posit.co/blog/parameterized-quarto/).
+- Jalayer, A. (2018). *R-run R non-interactively with BATCH file* [Jalayer Academy](https://youtu.be/Guw2XgGvl44?si=yzbaTVSL0oEG3lFx)
+- *How to Automate Data Reports with Quarto (Beginner_s Guide)*[](https://youtu.be/KCpuUF4vi5g?si=24o4-efKP7JYr2eA)
