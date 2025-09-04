@@ -1,0 +1,2490 @@
+
+R version 4.5.1 (2025-06-13 ucrt) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> # LOADING LIBRARIES
+> library(readr)
+> library(tidyverse)
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ purrr     1.0.4
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.2     ✔ tibble    3.3.0
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> library(fs)
+> library(glue)
+> library(rmarkdown)
+> library(blastula)
+> library(keyring)
+> library(pandoc)
+
+Attaching package: 'pandoc'
+
+The following objects are masked from 'package:rmarkdown':
+
+    pandoc_available, pandoc_convert, pandoc_version
+
+> 
+> # LOADING CLEANED SALES DATA
+> clean_sales <- read_csv("clean_sales.csv")
+Rows: 822 Columns: 4
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr  (2): ship.mode, segment
+dbl  (1): sales
+date (1): order.date
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+> # View(clean_sales)
+> 
+> # FACTORISING `ship.mode` and `segment` columns
+> clean_sales$ship.mode <- as.factor(clean_sales$ship.mode)
+> clean_sales$segment <- as.factor(clean_sales$segment)
+> 
+> # ADDING TIME-BASED COLUMNS FOR EASY TIME AGGREGATION
+> clean_sales <- clean_sales |> 
++   mutate(week = week(order.date), ## week
++          month = month(order.date,label = TRUE, abbr = FALSE), ## month
++          quarter = quarter(order.date), ## quarter
++          year = year(order.date))  ## year
+> 
+> 
+> ## DEFINING LOOP PARAMETERS -- month & year
+> all_years <- unique(clean_sales$year)
+> all_months <- levels(clean_sales$month)
+> 
+> 
+> # SETTING UP SMTP EMAIL PASSWORD
+> # create_smtp_creds_key(id = "gmail_secret",
+> #                        user = "pambagee@gmail.com",
+> #                        provider = "gmail",
+> #                        overwrite = FALSE)
+> 
+> 
+> ## STORING PASSWORD WITHIN A CREDENTIALS KEY VIA `keyring`
+> creds <- creds_key(id = "gmail_secret")
+> 
+> 
+> Sys.setenv(RSTUDIO_PANDOC = "C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools")
+> 
+> ## RENDERS ALL 48 REPORTS, MAILING THEM TO RELEVANT ADDRESSES
+> for (select_yr in all_years) {
++   for (select_month in all_months) {
++   
++     # Rendering periodic report(s)
++    render(input = "sales.Rmd",
++                 params = list(month = select_month,
++                                       year = select_yr),
++                 output_file = glue("Sales Report {select_month}-{select_yr}.html"),
++                 clean = TRUE)
++    
++     
++     # Composing email
++     email <- compose_email(
++       title = md("
++ # Sales Report
++                            "),
++       header = paste(select_yr,select_month,"- Pinnacle Upholsters Sales Report"),
++       body = md(
++         "
++ Hello,
++ 
++ Please find attached the monthly sales report.
++ 
++                   "),
++       footer = md(
++         "
++ ### Regards,
++ 
++ #### Sales Department
++                   ")
++     ) |>  ## Attaching the sales report to email
++       add_attachment(file = glue("Sales Report {select_month}-{select_yr}.html"))
++     
++     ## Sends the attached email
++     smtp_send(email = email,
++               from = "pambagee@gmail.com",
++               to = "giftbugame@yahoo.com",
++               subject = "Monthly Sales Report",
++               credentials = creds,
++   )
++     ## PRINTS OUT THE EMAIL STATUS REPORT
++     print(paste(select_yr,select_month,"email report sent!"))
++     
++     
++     # Creation of yearly folder(s) 
++    dir_create(select_yr)
++    
++    # Copying plot images of respective periods
++    dir_copy("sales_files",
++             path(select_yr,"sales_files"),overwrite = TRUE)
++    
++    # Moving periodic reports to respective yearly folders
++    file_move(
++       glue("Sales Report {select_month}-{select_yr}.html"),
++               path(select_yr,
++                           glue("Sales Report {select_month}-{select_yr}.html")))
++       
++    }
++ }
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70ddd944.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70470156a3.html" 
+
+Output created: Sales Report January-2013.html
+The email message was sent successfully.
+[1] "2013 January email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b705deb1500.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7077f66bbf.html" 
+
+Output created: Sales Report February-2013.html
+The email message was sent successfully.
+[1] "2013 February email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b705de25b6d.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b701caa19c7.html" 
+
+Output created: Sales Report March-2013.html
+The email message was sent successfully.
+[1] "2013 March email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b704b6e16c6.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b707fd02c5c.html" 
+
+Output created: Sales Report April-2013.html
+The email message was sent successfully.
+[1] "2013 April email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b707792a96.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7063253f82.html" 
+
+Output created: Sales Report May-2013.html
+The email message was sent successfully.
+[1] "2013 May email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b702a4711a3.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7018f960d0.html" 
+
+Output created: Sales Report June-2013.html
+The email message was sent successfully.
+[1] "2013 June email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b704c146ae3.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70181a531c.html" 
+
+Output created: Sales Report July-2013.html
+The email message was sent successfully.
+[1] "2013 July email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70386c1ad6.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b701db45706.html" 
+
+Output created: Sales Report August-2013.html
+The email message was sent successfully.
+[1] "2013 August email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b706c235c85.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70763d790a.html" 
+
+Output created: Sales Report September-2013.html
+The email message was sent successfully.
+[1] "2013 September email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b706c076038.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b706b9288.html" 
+
+Output created: Sales Report October-2013.html
+The email message was sent successfully.
+[1] "2013 October email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70746c78df.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70103f2bd0.html" 
+
+Output created: Sales Report November-2013.html
+The email message was sent successfully.
+[1] "2013 November email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7050a03c94.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7052d21fb4.html" 
+
+Output created: Sales Report December-2013.html
+The email message was sent successfully.
+[1] "2013 December email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7067cf3840.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7057982653.html" 
+
+Output created: Sales Report January-2014.html
+The email message was sent successfully.
+[1] "2014 January email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b702bb42d4b.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b701f0675b4.html" 
+
+Output created: Sales Report February-2014.html
+The email message was sent successfully.
+[1] "2014 February email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70749b24f9.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7065bd5e1c.html" 
+
+Output created: Sales Report March-2014.html
+The email message was sent successfully.
+[1] "2014 March email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b702e3a7b34.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70c36593.html" 
+
+Output created: Sales Report April-2014.html
+The email message was sent successfully.
+[1] "2014 April email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70206b238e.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7079f76abd.html" 
+
+Output created: Sales Report May-2014.html
+The email message was sent successfully.
+[1] "2014 May email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b703837717c.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b701bbf479f.html" 
+
+Output created: Sales Report June-2014.html
+The email message was sent successfully.
+[1] "2014 June email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b701d7cac5.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b706a8670e.html" 
+
+Output created: Sales Report July-2014.html
+The email message was sent successfully.
+[1] "2014 July email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b701e2823e1.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7036b36086.html" 
+
+Output created: Sales Report August-2014.html
+The email message was sent successfully.
+[1] "2014 August email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b702f354ba3.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7071aa2eff.html" 
+
+Output created: Sales Report September-2014.html
+The email message was sent successfully.
+[1] "2014 September email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b707ba71fd6.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70351e160d.html" 
+
+Output created: Sales Report October-2014.html
+The email message was sent successfully.
+[1] "2014 October email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70468839a3.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b703c7e3006.html" 
+
+Output created: Sales Report November-2014.html
+The email message was sent successfully.
+[1] "2014 November email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7021e259e7.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b703be95f2f.html" 
+
+Output created: Sales Report December-2014.html
+The email message was sent successfully.
+[1] "2014 December email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7066183541.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b705698def.html" 
+
+Output created: Sales Report January-2015.html
+The email message was sent successfully.
+[1] "2015 January email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7060d01902.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7041be362f.html" 
+
+Output created: Sales Report February-2015.html
+The email message was sent successfully.
+[1] "2015 February email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7028517cd.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b707b7441e0.html" 
+
+Output created: Sales Report March-2015.html
+The email message was sent successfully.
+[1] "2015 March email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7078854f0c.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b705fdd6a9a.html" 
+
+Output created: Sales Report April-2015.html
+The email message was sent successfully.
+[1] "2015 April email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7013295599.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70514f242f.html" 
+
+Output created: Sales Report May-2015.html
+The email message was sent successfully.
+[1] "2015 May email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b701af93704.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b707a4579c0.html" 
+
+Output created: Sales Report June-2015.html
+The email message was sent successfully.
+[1] "2015 June email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7047329ac.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7079ae4b6.html" 
+
+Output created: Sales Report July-2015.html
+The email message was sent successfully.
+[1] "2015 July email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7064526243.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70ca9146c.html" 
+
+Output created: Sales Report August-2015.html
+The email message was sent successfully.
+[1] "2015 August email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70484d271b.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70b28e7e.html" 
+
+Output created: Sales Report September-2015.html
+The email message was sent successfully.
+[1] "2015 September email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70714b2cb0.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b709cd73c1.html" 
+
+Output created: Sales Report October-2015.html
+The email message was sent successfully.
+[1] "2015 October email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b703e6077e1.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7037583596.html" 
+
+Output created: Sales Report November-2015.html
+The email message was sent successfully.
+[1] "2015 November email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7049bc3ff0.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7055f457a1.html" 
+
+Output created: Sales Report December-2015.html
+The email message was sent successfully.
+[1] "2015 December email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b702580216.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b704ea35a5b.html" 
+
+Output created: Sales Report January-2016.html
+The email message was sent successfully.
+[1] "2016 January email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7022811d82.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7078ed1d15.html" 
+
+Output created: Sales Report February-2016.html
+The email message was sent successfully.
+[1] "2016 February email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70757f7e6.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70168e1b1c.html" 
+
+Output created: Sales Report March-2016.html
+The email message was sent successfully.
+[1] "2016 March email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b705a391425.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70335f3199.html" 
+
+Output created: Sales Report April-2016.html
+The email message was sent successfully.
+[1] "2016 April email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b705e7518e6.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70102736c9.html" 
+
+Output created: Sales Report May-2016.html
+The email message was sent successfully.
+[1] "2016 May email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70637b60ab.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70739a5f98.html" 
+
+Output created: Sales Report June-2016.html
+The email message was sent successfully.
+[1] "2016 June email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7029bc71e0.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7050c65509.html" 
+
+Output created: Sales Report July-2016.html
+The email message was sent successfully.
+[1] "2016 July email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b707a6171fa.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70e08310a.html" 
+
+Output created: Sales Report August-2016.html
+The email message was sent successfully.
+[1] "2016 August email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b70747e3ad.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b70105068f4.html" 
+
+Output created: Sales Report September-2016.html
+The email message was sent successfully.
+[1] "2016 September email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b703db71995.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b703e6e1823.html" 
+
+Output created: Sales Report October-2016.html
+The email message was sent successfully.
+[1] "2016 October email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b705e06436f.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7035ae606b.html" 
+
+Output created: Sales Report November-2016.html
+The email message was sent successfully.
+[1] "2016 November email report sent!"
+
+
+processing file: sales.Rmd
+1/38                   
+2/38 [setup]           
+3/38                   
+4/38 [unnamed-chunk-1] 
+5/38                   
+6/38 [unnamed-chunk-2] 
+7/38                   
+8/38 [unnamed-chunk-3] 
+9/38                   
+10/38 [unnamed-chunk-4] 
+11/38                   
+12/38 [unnamed-chunk-5] 
+13/38                   
+14/38 [unnamed-chunk-6] 
+15/38                   
+16/38 [unnamed-chunk-7] 
+17/38                   
+18/38 [unnamed-chunk-8] 
+19/38                   
+20/38 [unnamed-chunk-9] 
+21/38                   
+22/38 [unnamed-chunk-10]
+23/38                   
+24/38 [unnamed-chunk-11]
+25/38                   
+26/38 [unnamed-chunk-12]
+27/38                   
+28/38 [unnamed-chunk-13]
+29/38                   
+30/38 [unnamed-chunk-14]
+31/38                   
+32/38 [unnamed-chunk-15]
+33/38                   
+34/38 [unnamed-chunk-16]
+35/38                   
+36/38 [unnamed-chunk-17]
+37/38                   
+38/38 [unnamed-chunk-18]
+output file: sales.knit.md
+
+"C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/pandoc" +RTS -K512m -RTS sales.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output pandoc2b7013ea1d33.html --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\pagebreak.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\latex-div.lua" --lua-filter "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmarkdown\lua\table-classes.lua" --embed-resources --standalone --variable bs3=TRUE --section-divs --template "C:\Users\y\AppData\Local\R\win-library\4.5\rmarkdown\rmd\h\default.html" --no-highlight --variable highlightjs=1 --variable theme=bootstrap --mathjax --variable "mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" --include-in-header "C:\Users\y\AppData\Local\Temp\Rtmpq08vMH\rmarkdown-str2b7023c42687.html" 
+
+Output created: Sales Report December-2016.html
+The email message was sent successfully.
+[1] "2016 December email report sent!"
+There were 21 warnings (use warnings() to see them)
+>  
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+ 226.15   39.34 1093.10 
