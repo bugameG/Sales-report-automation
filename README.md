@@ -5,7 +5,7 @@ An automation framework that uses RMarkdown to generate and email periodic param
 ## Packages used
 The following librarires were used to facilitate this project
 
-![blastula](blastula.png)
+![blastula](images/blastula.png)
 ![tidyverse](tidyverse.png)
 ![readxl](readxl.png)
 ![ggplot2](ggplot2.png)
