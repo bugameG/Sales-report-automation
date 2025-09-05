@@ -1,0 +1,2 @@
+cd "C:\Users\y\Desktop\Gift\statistical computing\sales" 
+"C:\Program Files\R\R-4.5.1\bin\x64\R.exe" CMD BATCH "C:\Users\y\Desktop\Gift\statistical computing\sales\sales_Automation.R" "C:\Users\y\Desktop\Gift\statistical computing\sales\sales_Automation.Rout"
